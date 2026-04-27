@@ -1799,14 +1799,12 @@ function downloadProposal() {
   const COLORS = {path:'#a8c878',tree:'#c9a84c',well:'#7ab4c8',spot:'#e8c97a',wash:'#c87ab4'};
   const types  = Object.entries(cn).filter(([,v])=>v>0);
 
-  // Canvas dimensions — letter-ish proportions at 2x for sharpness
+  // Make canvas very tall — will be cropped to exact content height after drawing
   const CW = 900;
   const PAD = 52;
   const mapH = S.W ? Math.round(CW * (S.H/S.W)) : 0;
   const rowH = 44;
-  const footerH = 80;
-  const contentH = 200 + mapH + (types.length * rowH) + footerH + (discount>0?44:0);
-  const CH = contentH;
+  const CH = PAD + 120 + mapH + 4000; // always enough room
 
   const cv  = document.createElement('canvas');
   cv.width  = CW; cv.height = CH;
@@ -2006,9 +2004,15 @@ function downloadProposal() {
     c.font = '10px Jost, sans-serif';
     c.fillText('This proposal is valid for 30 days.', CW-PAD, y+14);
     c.textAlign = 'left';
+    y += 36;
 
-    // Trigger download
-    const dataUrl = cv.toDataURL('image/png');
+    // Crop canvas to actual content height then download
+    const cropCanvas = document.createElement('canvas');
+    cropCanvas.width = CW;
+    cropCanvas.height = y;
+    cropCanvas.getContext('2d').drawImage(cv, 0, 0);
+
+    const dataUrl = cropCanvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = dataUrl;
     a.download = `Lux-Lighting-Proposal-${Date.now()}.png`;
