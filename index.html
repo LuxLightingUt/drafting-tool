@@ -28,6 +28,7 @@
   --cw: #7ab4c8;   /* well  — steel blue */
   --cs: #e8c97a;   /* spot  — warm gold  */
   --cwash: #c87ab4; /* wash  — warm rose  */
+  --cex:   #888888; /* existing — grey    */
   --wm: #c9a84c;
 }
 html, body {
@@ -237,7 +238,8 @@ html, body {
 .fchip.sel[data-f="tree"] { border-color:var(--ct); background:rgba(201,168,76,.1);  color:var(--ct); }
 .fchip.sel[data-f="well"] { border-color:var(--cw); background:rgba(122,180,200,.1); color:var(--cw); }
 .fchip.sel[data-f="spot"] { border-color:var(--cs); background:rgba(232,201,122,.1); color:var(--cs); }
-.fchip.sel[data-f="wash"] { border-color:var(--cwash); background:rgba(200,122,180,.1); color:var(--cwash); }
+.fchip.sel[data-f="wash"]     { border-color:var(--cwash); background:rgba(200,122,180,.1); color:var(--cwash); }
+.fchip.sel[data-f="existing"] { border-color:var(--cex);   background:rgba(136,136,136,.1); color:var(--cex);   }
 
 .wchip {
   flex:1; padding:7px 4px; border-radius:7px; border:1px solid var(--border);
@@ -540,6 +542,7 @@ html, body {
     <div class="sc"><div class="sd" style="background:var(--cw)"></div><span style="color:var(--text-dim)">Well</span><span class="sn" id="cw">0</span></div>
     <div class="sc"><div class="sd" style="background:var(--cs)"></div><span style="color:var(--text-dim)">Spot</span><span class="sn" id="cs">0</span></div>
     <div class="sc"><div class="sd" style="background:var(--cwash)"></div><span style="color:var(--text-dim)">Wash</span><span class="sn" id="cwash">0</span></div>
+    <div class="sc"><div class="sd" style="background:var(--cex)"></div><span style="color:var(--text-dim)">Exist</span><span class="sn" id="cex">0</span></div>
     <div id="wirestat"><span class="wft" id="wft">0</span><span class="wunit">ft wire</span></div>
   </div>
 
@@ -565,6 +568,7 @@ html, body {
       <button class="fchip" data-f="spot">▲ Spot</button>
       <button class="fchip" data-f="well">⬡ Well</button>
       <button class="fchip" data-f="wash">≋ Wash</button>
+      <button class="fchip" data-f="existing">◎ Exist</button>
     </div>
     <div class="subrow" id="wrow" style="display:none">
       <span class="slbl">Run:</span>
@@ -725,11 +729,12 @@ let nid=1;
 
 const FCFG = {
   //                icon color   beam is warm white-amber light
-  path:{ color:'#a8c878', glow:'rgba(168,200,120,0.6)', r:13, label:'Path Light',  beam:'radial', beamR:60,  beamColor:'rgba(255,240,180,0.22)' },
-  tree:{ color:'#c9a84c', glow:'rgba(201,168,76,0.6)',  r:13, label:'Tree Light',  beam:'cone',   beamL:90,  beamA:55,  beamColor:'rgba(255,240,180,0.22)' },
-  well:{ color:'#7ab4c8', glow:'rgba(122,180,200,0.6)', r:13, label:'Well Light',  beam:'radial', beamR:45,  beamColor:'rgba(255,240,180,0.18)' },
-  spot:{ color:'#e8c97a', glow:'rgba(232,201,122,0.6)', r:13, label:'Spot Light',  beam:'cone',   beamL:120, beamA:36,  beamColor:'rgba(255,240,180,0.26)' },
-  wash:{ color:'#c87ab4', glow:'rgba(200,122,180,0.6)', r:13, label:'Wash Light',  beam:'cone',   beamL:75,  beamA:110, beamColor:'rgba(255,240,180,0.20)' },
+  path:    { color:'#a8c878', glow:'rgba(168,200,120,0.6)', r:13, label:'Path Light',     beam:'radial', beamR:60,  beamColor:'rgba(255,240,180,0.22)' },
+  tree:    { color:'#c9a84c', glow:'rgba(201,168,76,0.6)',  r:13, label:'Tree Light',     beam:'cone',   beamL:90,  beamA:55,  beamColor:'rgba(255,240,180,0.22)' },
+  well:    { color:'#7ab4c8', glow:'rgba(122,180,200,0.6)', r:13, label:'Well Light',     beam:'radial', beamR:45,  beamColor:'rgba(255,240,180,0.18)' },
+  spot:    { color:'#e8c97a', glow:'rgba(232,201,122,0.6)', r:13, label:'Spot Light',     beam:'cone',   beamL:120, beamA:36,  beamColor:'rgba(255,240,180,0.26)' },
+  wash:    { color:'#c87ab4', glow:'rgba(200,122,180,0.6)', r:13, label:'Wash Light',     beam:'cone',   beamL:75,  beamA:110, beamColor:'rgba(255,240,180,0.20)' },
+  existing:{ color:'#888888', glow:'rgba(136,136,136,0.35)',r:13, label:'Existing Light', beam:'radial', beamR:40,  beamColor:'rgba(255,240,180,0.10)' },
 };
 const WCFG = {
   main:  { color:'#c9a84c', w:3, dash:'none', label:'Main Run' },
@@ -991,6 +996,22 @@ function drawIcon(g, f, cfg) {
       g.appendChild(ray);
     });
     g.appendChild(bar);
+
+  } else if(f.type==='existing') {
+    // Dashed circle with X — clearly "already here"
+    const outer = document.createElementNS(NS,'circle');
+    outer.setAttribute('cx',x); outer.setAttribute('cy',y); outer.setAttribute('r',ICON_R*0.9);
+    outer.setAttribute('fill','none'); outer.setAttribute('stroke',col);
+    outer.setAttribute('stroke-width','2'); outer.setAttribute('stroke-dasharray','4,3');
+    const l1 = document.createElementNS(NS,'line');
+    l1.setAttribute('x1',x-ICON_R*0.5); l1.setAttribute('y1',y-ICON_R*0.5);
+    l1.setAttribute('x2',x+ICON_R*0.5); l1.setAttribute('y2',y+ICON_R*0.5);
+    l1.setAttribute('stroke',col); l1.setAttribute('stroke-width','2'); l1.setAttribute('stroke-linecap','round');
+    const l2 = document.createElementNS(NS,'line');
+    l2.setAttribute('x1',x+ICON_R*0.5); l2.setAttribute('y1',y-ICON_R*0.5);
+    l2.setAttribute('x2',x-ICON_R*0.5); l2.setAttribute('y2',y+ICON_R*0.5);
+    l2.setAttribute('stroke',col); l2.setAttribute('stroke-width','2'); l2.setAttribute('stroke-linecap','round');
+    g.appendChild(outer); g.appendChild(l1); g.appendChild(l2);
   }
 
   // ── Selection ring outside badge ──
@@ -1440,13 +1461,14 @@ function resetCalibration(){
 }
 document.getElementById('btnResetCal').addEventListener('click', resetCalibration);
 function updStats(){
-  const c={path:0,tree:0,well:0,spot:0,wash:0};
+  const c={path:0,tree:0,well:0,spot:0,wash:0,existing:0};
   S.fixtures.forEach(f=>c[f.type]++);
   document.getElementById('cp').textContent=c.path;
   document.getElementById('ct').textContent=c.tree;
   document.getElementById('cw').textContent=c.well;
   document.getElementById('cs').textContent=c.spot;
   document.getElementById('cwash').textContent=c.wash;
+  document.getElementById('cex').textContent=c.existing;
   let px=0;
   S.wires.forEach(w=>{for(let i=1;i<w.pts.length;i++) px+=Math.hypot(w.pts[i].x-w.pts[i-1].x,w.pts[i].y-w.pts[i-1].y);});
   document.getElementById('wft').textContent=Math.round(px*S.ftPerPx);
@@ -1646,11 +1668,11 @@ function openPrintWindow(mapDataUrl) {
     const name    = document.getElementById('clientName').value.trim() || '';
     const addr    = document.getElementById('addrIn').value.trim() || '';
     const ppl     = parseFloat(document.getElementById('qPricePerLight').value) || 450;
-    const LABELS  = {path:'Path Lights',tree:'Tree Lights',well:'Well Lights',spot:'Spot Lights',wash:'Wash Lights'};
-    const COLORS  = {path:'#a8c878',tree:'#c9a84c',well:'#7ab4c8',spot:'#e8c97a',wash:'#c87ab4'};
-    const cn      = {path:0,tree:0,well:0,spot:0,wash:0};
+    const LABELS  = {path:'Path Lights',tree:'Tree Lights',well:'Well Lights',spot:'Spot Lights',wash:'Wash Lights',existing:'Existing Lights'};
+    const COLORS  = {path:'#a8c878',tree:'#c9a84c',well:'#7ab4c8',spot:'#e8c97a',wash:'#c87ab4',existing:'#888888'};
+    const cn      = {path:0,tree:0,well:0,spot:0,wash:0,existing:0};
     S.fixtures.forEach(f=>{ if(cn[f.type]!==undefined) cn[f.type]++; });
-    const subtotal = Object.values(cn).reduce((a,b)=>a+b,0) * ppl;
+    const subtotal = Object.entries(cn).filter(([k])=>k!=='existing').reduce((s,[,v])=>s+v,0) * ppl;
     let discount = 0;
     if(document.getElementById('qToggleTrack').classList.contains('on')) {
       const pct = parseFloat(document.getElementById('qDiscPct').value)||0;
@@ -1674,7 +1696,7 @@ function openPrintWindow(mapDataUrl) {
           </div>
         </td>
         <td style="padding:9px 14px;font-size:13px;text-align:center;color:#f0e8d8;border-bottom:1px solid #1e1e1e;">${v}</td>
-        <td style="padding:9px 14px;font-size:13px;text-align:right;color:#f0e8d8;border-bottom:1px solid #1e1e1e;">$${(v*ppl).toLocaleString()}</td>
+        <td style="padding:9px 14px;font-size:13px;text-align:right;color:${k==='existing'?'#888888':'#f0e8d8'};border-bottom:1px solid #1e1e1e;">${k==='existing'?'No charge':'$'+(v*ppl).toLocaleString()}</td>
       </tr>`).join('');
 
     const discountRowHTML = discount>0
@@ -1782,9 +1804,9 @@ function downloadProposal() {
   const addr  = document.getElementById('addrIn').value.trim() || '';
   const name  = document.getElementById('clientName').value.trim() || '';
   const ppl   = parseFloat(document.getElementById('qPricePerLight').value) || 450;
-  const cn    = {path:0,tree:0,well:0,spot:0,wash:0};
+  const cn    = {path:0,tree:0,well:0,spot:0,wash:0,existing:0};
   S.fixtures.forEach(f=>{ if(cn[f.type]!==undefined) cn[f.type]++; });
-  const total_fixtures = Object.values(cn).reduce((a,b)=>a+b,0);
+  const total_fixtures = Object.entries(cn).filter(([k])=>k!=='existing').reduce((s,[,v])=>s+v,0);
   const subtotal = total_fixtures * ppl;
   let discount = 0;
   if(document.getElementById('qToggleTrack').classList.contains('on')) {
@@ -1795,8 +1817,8 @@ function downloadProposal() {
   const total = subtotal - discount;
   const date  = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
-  const LABELS = {path:'Path Lights',tree:'Tree Lights',well:'Well Lights',spot:'Spot Lights',wash:'Wash Lights'};
-  const COLORS = {path:'#a8c878',tree:'#c9a84c',well:'#7ab4c8',spot:'#e8c97a',wash:'#c87ab4'};
+  const LABELS = {path:'Path Lights',tree:'Tree Lights',well:'Well Lights',spot:'Spot Lights',wash:'Wash Lights',existing:'Existing Lights'};
+  const COLORS = {path:'#a8c878',tree:'#c9a84c',well:'#7ab4c8',spot:'#e8c97a',wash:'#c87ab4',existing:'#888888'};
   const types  = Object.entries(cn).filter(([,v])=>v>0);
 
   // Make canvas very tall — will be cropped to exact content height after drawing
@@ -1826,13 +1848,14 @@ function downloadProposal() {
     c.shadowBlur = 0;
 
     c.font = `400 14px 'Cinzel', serif`;
-    c.fillStyle = '#a09080';
+    c.fillStyle = '#b0a898';
     c.fillText('LIGHTING', PAD, y + 52);
 
-    // Centered gold line — transparent → gold → transparent
-    const luxW = c.measureText('LUX').width + 10;
-    const lineW = Math.max(luxW, 88);
-    const lineX = PAD + (luxW / 2) - (lineW / 2);
+    // Gold line — measure LUX width, center line under it starting from PAD
+    c.font = `600 36px 'Cinzel', serif`;
+    const luxW = c.measureText('LUX').width;
+    const lineW = 88;
+    const lineX = PAD + (luxW - lineW) / 2;
     const gline = c.createLinearGradient(lineX, 0, lineX + lineW, 0);
     gline.addColorStop(0,   'rgba(201,168,76,0)');
     gline.addColorStop(0.5, '#c9a84c');
@@ -1949,7 +1972,13 @@ function downloadProposal() {
       c.textAlign = 'center';
       c.fillText(v, CW/2, y+rowH/2+5);
       c.textAlign = 'right';
-      c.fillText('$'+(v*ppl).toLocaleString(), CW-PAD-14, y+rowH/2+5);
+      if(k==='existing'){
+        c.fillStyle = '#888888';
+        c.fillText('No charge', CW-PAD-14, y+rowH/2+5);
+      } else {
+        c.fillStyle = '#f0e8d8';
+        c.fillText('$'+(v*ppl).toLocaleString(), CW-PAD-14, y+rowH/2+5);
+      }
       c.textAlign = 'left';
       y += rowH;
     });
@@ -2044,11 +2073,12 @@ function updateClientBar() {
 document.getElementById('clientName').addEventListener('input', updateClientBar);
 document.getElementById('addrIn').addEventListener('input', updateClientBar);
 const LIGHT_TYPES = [
-  { key:'path', label:'Path Lights',  color:'var(--cp)' },
-  { key:'tree', label:'Tree Lights',  color:'var(--ct)' },
-  { key:'well', label:'Well Lights',  color:'var(--cw)' },
-  { key:'spot', label:'Spot Lights',  color:'var(--cs)' },
-  { key:'wash', label:'Wash Lights',  color:'var(--cwash)' },
+  { key:'path',     label:'Path Lights',     color:'var(--cp)'   },
+  { key:'tree',     label:'Tree Lights',     color:'var(--ct)'   },
+  { key:'well',     label:'Well Lights',     color:'var(--cw)'   },
+  { key:'spot',     label:'Spot Lights',     color:'var(--cs)'   },
+  { key:'wash',     label:'Wash Lights',     color:'var(--cwash)'},
+  { key:'existing', label:'Existing Lights', color:'var(--cex)', free:true },
 ];
 
 // Quote state — counts can be edited independently of map
@@ -2060,7 +2090,7 @@ document.getElementById('btnCloseQuote').addEventListener('click', closeQuote);
 document.getElementById('quoteOverlay').addEventListener('click', closeQuote);
 
 function openQuote() {
-  Q.counts = {path:0,tree:0,well:0,spot:0,wash:0};
+  Q.counts = {path:0,tree:0,well:0,spot:0,wash:0,existing:0};
   S.fixtures.forEach(f=>{ if(Q.counts[f.type]!==undefined) Q.counts[f.type]++; });
 
   const name = document.getElementById('clientName').value.trim();
@@ -2092,6 +2122,7 @@ function renderQLightRows() {
     row.innerHTML = `
       <div class="q-dot" style="background:${t.color}"></div>
       <span class="q-label">${t.label}</span>
+      ${t.free ? `<span id="qfree-${t.key}" style="font-size:10px;color:var(--text-dim);letter-spacing:0.04em;display:${Q.counts[t.key]>0?'inline':'none'};">No charge</span>` : ''}
       <div class="q-stepper">
         <div class="q-step-btn" data-key="${t.key}" data-dir="-1">−</div>
         <div class="q-count" id="qc-${t.key}">${Q.counts[t.key]}</div>
@@ -2105,6 +2136,9 @@ function renderQLightRows() {
       const key=btn.dataset.key, dir=parseInt(btn.dataset.dir);
       Q.counts[key] = Math.max(0, (Q.counts[key]||0)+dir);
       document.getElementById(`qc-${key}`).textContent = Q.counts[key];
+      // Show/hide free label for existing
+      const freeEl = document.getElementById(`qfree-${key}`);
+      if(freeEl) freeEl.style.display = Q.counts[key]>0 ? 'inline' : 'none';
       calcQuote();
     });
   });
@@ -2112,8 +2146,11 @@ function renderQLightRows() {
 
 function calcQuote() {
   const ppl = parseFloat(document.getElementById('qPricePerLight').value)||450;
-  const total = Object.values(Q.counts).reduce((s,n)=>s+n,0);
-  const subtotal = total * ppl;
+  // Only count non-existing fixtures
+  const billable = Object.entries(Q.counts)
+    .filter(([k])=>k!=='existing')
+    .reduce((s,[,n])=>s+n, 0);
+  const subtotal = billable * ppl;
 
   document.getElementById('qSubtotal').textContent = fmt(subtotal);
 
