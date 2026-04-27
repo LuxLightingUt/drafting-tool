@@ -12,16 +12,16 @@
   --bg:       #0a0a0a;
   --surface:  #111111;
   --surface2: #181818;
-  --border:   #2a2620;
-  --border2:  #3a3428;
+  --border:   #3a3530;
+  --border2:  #4a4438;
   --gold:     #c9a84c;
   --gold-lt:  #e8c97a;
   --gold-dim: rgba(201,168,76,0.15);
   --gold-glow:rgba(201,168,76,0.35);
   --cream:    #f0e8d8;
-  --cream-dim:#a09080;
+  --cream-dim:#c8bfb0;
   --text:     #f0e8d8;
-  --text-dim: #7a6e60;
+  --text-dim: #b0a898;
   /* fixture colors — warm to cool, all premium */
   --cp: #a8c878;   /* path  — soft sage  */
   --ct: #c9a84c;   /* tree  — gold       */
@@ -1660,7 +1660,7 @@ function openPrintWindow(mapDataUrl) {
     const total = subtotal - discount;
 
     const fixtureChips = Object.entries(cn).filter(([,v])=>v>0).map(([k,v])=>
-      `<div style="display:flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid #2a2620;border-radius:20px;font-size:12px;color:#a09080;">
+      `<div style="display:flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid #3a3630;border-radius:20px;font-size:12px;color:#f0e8d8;">
         <div style="width:8px;height:8px;border-radius:50%;background:${COLORS[k]};flex-shrink:0;"></div>
         <span>${v} ${LABELS[k]}</span>
       </div>`).join('');
@@ -1678,11 +1678,11 @@ function openPrintWindow(mapDataUrl) {
       </tr>`).join('');
 
     const discountRowHTML = discount>0
-      ? `<tr><td colspan="2" style="padding:7px 14px;font-size:12px;color:#5a5048;border-bottom:1px solid #1e1e1e;">Discount</td><td style="padding:7px 14px;text-align:right;font-size:12px;color:#5a5048;border-bottom:1px solid #1e1e1e;">−$${discount.toLocaleString()}</td></tr>` : '';
+      ? `<tr><td colspan="2" style="padding:7px 14px;font-size:12px;color:#f0e8d8;border-bottom:1px solid #1e1e1e;">Discount</td><td style="padding:7px 14px;text-align:right;font-size:12px;color:#f0e8d8;border-bottom:1px solid #1e1e1e;">−$${discount.toLocaleString()}</td></tr>` : '';
 
     const subtotalRow = `<tr style="background:#141414;">
-      <td colspan="2" style="padding:9px 14px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.1em;color:#5a5048;">SUBTOTAL</td>
-      <td style="padding:9px 14px;text-align:right;font-family:'Cormorant Garamond',serif;font-size:16px;color:#a09080;">$${subtotal.toLocaleString()}</td>
+      <td colspan="2" style="padding:9px 14px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.1em;color:#f0e8d8;">SUBTOTAL</td>
+      <td style="padding:9px 14px;text-align:right;font-family:'Cormorant Garamond',serif;font-size:16px;color:#f0e8d8;">$${subtotal.toLocaleString()}</td>
     </tr>`;
 
     const mapHTML = mapDataUrl
@@ -1700,30 +1700,30 @@ function openPrintWindow(mapDataUrl) {
           </div>
         </div>
         <div style="text-align:right;">
-          <div style="font-family:'Cinzel',serif;font-size:10px;color:#7a6e60;letter-spacing:0.18em;margin-bottom:4px;">LANDSCAPE LIGHTING PROPOSAL</div>
-          <div style="font-family:'Jost',sans-serif;font-size:11px;color:#5a5048;">${date}</div>
+          <div style="font-family:'Cinzel',serif;font-size:10px;color:#f0e8d8;letter-spacing:0.18em;margin-bottom:4px;">LANDSCAPE LIGHTING PROPOSAL</div>
+          <div style="font-family:'Jost',sans-serif;font-size:11px;color:#f0e8d8;opacity:0.6;">${date}</div>
         </div>
       </div>
 
       ${(name || addr) ? `
       <div style="margin-bottom:20px;">
         ${name ? `<div style="font-family:'Cinzel',serif;font-size:14px;color:#f0e8d8;letter-spacing:0.08em;margin-bottom:4px;">${name}</div>` : ''}
-        ${addr ? `<div style="font-family:'Jost',sans-serif;font-size:12px;color:#a09080;">${addr}</div>` : ''}
+        ${addr ? `<div style="font-family:'Jost',sans-serif;font-size:12px;color:#f0e8d8;opacity:0.7;">${addr}</div>` : ''}
       </div>` : ''}
 
       ${mapHTML}
 
-      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.16em;color:#5a5048;text-transform:uppercase;margin-bottom:8px;">Fixture Plan</div>
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.16em;color:#f0e8d8;text-transform:uppercase;margin-bottom:8px;">Fixture Plan</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;">${fixtureChips}</div>
 
-      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.16em;color:#5a5048;text-transform:uppercase;margin-bottom:8px;">Investment Summary</div>
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.16em;color:#f0e8d8;text-transform:uppercase;margin-bottom:8px;">Investment Summary</div>
       <div style="border:1px solid #2a2620;border-radius:8px;overflow:hidden;margin-bottom:16px;">
         <table style="width:100%;border-collapse:collapse;">
           <thead>
             <tr style="background:#141414;border-bottom:1px solid #2a2620;">
-              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#5a5048;font-weight:400;padding:9px 14px;text-align:left;">Fixture</th>
-              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#5a5048;font-weight:400;padding:9px 14px;text-align:center;">Qty</th>
-              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#5a5048;font-weight:400;padding:9px 14px;text-align:right;">Amount</th>
+              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#f0e8d8;font-weight:400;padding:9px 14px;text-align:left;">Fixture</th>
+              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#f0e8d8;font-weight:400;padding:9px 14px;text-align:center;">Qty</th>
+              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#f0e8d8;font-weight:400;padding:9px 14px;text-align:right;">Amount</th>
             </tr>
           </thead>
           <tbody>${tableRows}${discountRowHTML}${subtotalRow}</tbody>
@@ -1731,13 +1731,13 @@ function openPrintWindow(mapDataUrl) {
       </div>
 
       <div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px;background:#141414;border:1px solid #2a2620;border-radius:8px;margin-bottom:22px;">
-        <span style="font-family:'Cinzel',serif;font-size:11px;color:#7a6e60;letter-spacing:0.16em;">TOTAL INVESTMENT</span>
+        <span style="font-family:'Cinzel',serif;font-size:11px;color:#f0e8d8;letter-spacing:0.16em;">TOTAL INVESTMENT</span>
         <span style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#f0e8d8;">$${total.toLocaleString()}</span>
       </div>
 
       <div style="padding-top:14px;border-top:1px solid #2a2620;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-family:'Cinzel',serif;font-size:10px;color:#3a3430;letter-spacing:0.14em;">LUX LIGHTING</span>
-        <span style="font-size:10px;color:#3a3430;">This proposal is valid for 30 days.</span>
+        <span style="font-family:'Cinzel',serif;font-size:10px;color:#f0e8d8;opacity:0.5;letter-spacing:0.14em;">LUX LIGHTING</span>
+        <span style="font-size:10px;color:#f0e8d8;opacity:0.5;">This proposal is valid for 30 days.</span>
       </div>`;
 
     document.getElementById('pdfContent').innerHTML = html;
@@ -1817,34 +1817,42 @@ function downloadProposal() {
 
     let y = PAD;
 
-    // ── LOGO — matches app header exactly ──
-    c.font = `600 42px 'Cinzel', serif`;
+    // ── LOGO — matches HTML preview exactly ──
+    c.font = `600 36px 'Cinzel', serif`;
     c.fillStyle = '#f0e8d8';
-    c.fillText('LUX', PAD, y + 40);
+    c.shadowColor = 'rgba(201,168,76,0.3)';
+    c.shadowBlur = 20;
+    c.fillText('LUX', PAD, y + 34);
+    c.shadowBlur = 0;
 
-    c.font = `400 10px 'Cinzel', serif`;
-    c.fillStyle = '#7a6e60';
-    c.fillText('LIGHTING', PAD + 2, y + 57);
+    c.font = `400 14px 'Cinzel', serif`;
+    c.fillStyle = '#a09080';
+    c.fillText('LIGHTING', PAD, y + 52);
 
-    // Gold gradient line under LIGHTING
-    const gline = c.createLinearGradient(PAD, 0, PAD + 68, 0);
-    gline.addColorStop(0, '#c9a84c');
-    gline.addColorStop(1, 'rgba(201,168,76,0)');
+    // Centered gold line — transparent → gold → transparent
+    const luxW = c.measureText('LUX').width + 10;
+    const lineW = Math.max(luxW, 88);
+    const lineX = PAD + (luxW / 2) - (lineW / 2);
+    const gline = c.createLinearGradient(lineX, 0, lineX + lineW, 0);
+    gline.addColorStop(0,   'rgba(201,168,76,0)');
+    gline.addColorStop(0.5, '#c9a84c');
+    gline.addColorStop(1,   'rgba(201,168,76,0)');
     c.fillStyle = gline;
-    c.fillRect(PAD, y + 62, 68, 1.5);
+    c.fillRect(lineX, y + 58, lineW, 2);
 
     // Proposal label + date top right
     c.font = `400 11px 'Cinzel', serif`;
-    c.fillStyle = '#7a6e60';
+    c.fillStyle = '#f0e8d8';
     c.textAlign = 'right';
     c.fillText('LANDSCAPE LIGHTING PROPOSAL', CW - PAD, y + 28);
     c.font = `300 12px 'Jost', sans-serif`;
-    c.fillStyle = '#5a5048';
+    c.globalAlpha = 0.6;
     c.fillText(date, CW - PAD, y + 46);
+    c.globalAlpha = 1;
     c.textAlign = 'left';
 
     // Divider
-    y += 82;
+    y += 72;
     c.fillStyle = '#2a2620';
     c.fillRect(PAD, y, CW - PAD*2, 1);
     y += 16;
@@ -1889,7 +1897,7 @@ function downloadProposal() {
   function drawAfterMap(y) {
     // Section: Fixture Plan
     c.font = `400 10px 'Cinzel', serif`;
-    c.fillStyle = '#5a5048';
+    c.fillStyle = '#f0e8d8';
     c.fillText('FIXTURE PLAN', PAD, y + 12);
     y += 24;
 
@@ -1900,14 +1908,11 @@ function downloadProposal() {
       c.font = '13px Jost, sans-serif';
       const tw = c.measureText(label).width;
       const chipW = tw + 28 + 14;
-      // chip bg
-      c.strokeStyle = '#2a2620'; c.lineWidth = 1;
+      c.strokeStyle = '#3a3630'; c.lineWidth = 1;
       c.beginPath(); c.roundRect(cx, y, chipW, 26, 13); c.stroke();
-      // dot
       c.fillStyle = COLORS[k];
       c.beginPath(); c.arc(cx + 16, y + 13, 5, 0, Math.PI*2); c.fill();
-      // label
-      c.fillStyle = '#a09080';
+      c.fillStyle = '#f0e8d8';
       c.fillText(label, cx + 28, y + 18);
       cx += chipW + 8;
     });
@@ -1915,7 +1920,7 @@ function downloadProposal() {
 
     // Section: Investment Summary
     c.font = `400 10px 'Cinzel', serif`;
-    c.fillStyle = '#5a5048';
+    c.fillStyle = '#f0e8d8';
     c.fillText('INVESTMENT SUMMARY', PAD, y + 12);
     y += 22;
 
@@ -1923,7 +1928,7 @@ function downloadProposal() {
     c.fillStyle = '#141414';
     c.fillRect(PAD, y, CW - PAD*2, 34);
     c.font = `400 9px 'Cinzel', serif`;
-    c.fillStyle = '#5a5048';
+    c.fillStyle = '#f0e8d8';
     c.fillText('FIXTURE',   PAD + 14, y + 21);
     c.textAlign = 'center';
     c.fillText('QTY', CW/2, y + 21);
@@ -1936,16 +1941,13 @@ function downloadProposal() {
     Object.entries(cn).filter(([,v])=>v>0).forEach(([k,v], i) => {
       c.fillStyle = i%2===0 ? '#0f0f0f' : '#0a0a0a';
       c.fillRect(PAD, y, CW - PAD*2, rowH);
-      // dot + label
       c.fillStyle = COLORS[k];
       c.beginPath(); c.arc(PAD+20, y+rowH/2, 5, 0, Math.PI*2); c.fill();
       c.font = '14px Jost, sans-serif';
       c.fillStyle = '#f0e8d8';
       c.fillText(LABELS[k], PAD+34, y+rowH/2+5);
-      // qty
       c.textAlign = 'center';
       c.fillText(v, CW/2, y+rowH/2+5);
-      // amount
       c.textAlign = 'right';
       c.fillText('$'+(v*ppl).toLocaleString(), CW-PAD-14, y+rowH/2+5);
       c.textAlign = 'left';
@@ -1957,7 +1959,7 @@ function downloadProposal() {
       c.fillStyle = '#0a0a0a';
       c.fillRect(PAD, y, CW - PAD*2, rowH);
       c.font = '13px Jost, sans-serif';
-      c.fillStyle = '#888';
+      c.fillStyle = '#f0e8d8';
       c.fillText('Discount', PAD+14, y+rowH/2+5);
       c.textAlign = 'right';
       c.fillText('−$'+discount.toLocaleString(), CW-PAD-14, y+rowH/2+5);
@@ -1969,10 +1971,9 @@ function downloadProposal() {
     c.fillStyle = '#141414';
     c.fillRect(PAD, y, CW - PAD*2, rowH);
     c.font = `400 10px 'Cinzel', serif`;
-    c.fillStyle = '#5a5048';
+    c.fillStyle = '#f0e8d8';
     c.fillText('SUBTOTAL', PAD+14, y+rowH/2+5);
     c.font = `400 17px 'Cormorant Garamond', serif`;
-    c.fillStyle = '#a09080';
     c.textAlign = 'right';
     c.fillText('$'+subtotal.toLocaleString(), CW-PAD-14, y+rowH/2+7);
     c.textAlign = 'left';
@@ -1984,26 +1985,27 @@ function downloadProposal() {
     c.lineWidth = 1;
     c.beginPath(); c.roundRect(PAD, y, CW-PAD*2, 64, 8); c.fill(); c.stroke();
     c.font = `400 11px 'Cinzel', serif`;
-    c.fillStyle = '#7a6e60';
+    c.fillStyle = '#f0e8d8';
     c.fillText('TOTAL INVESTMENT', PAD+18, y+26);
     c.font = `600 42px 'Cormorant Garamond', serif`;
-    c.fillStyle = '#f0e8d8';
     c.textAlign = 'right';
     c.fillText('$'+total.toLocaleString(), CW-PAD-18, y+52);
     c.textAlign = 'left';
     y += 80;
 
-    // Footer divider
+    // Footer
     c.fillStyle = '#2a2620';
     c.fillRect(PAD, y, CW-PAD*2, 1);
     y += 14;
     c.font = `400 10px 'Cinzel', serif`;
-    c.fillStyle = '#3a3430';
+    c.globalAlpha = 0.5;
+    c.fillStyle = '#f0e8d8';
     c.fillText('LUX LIGHTING', PAD, y+14);
     c.textAlign = 'right';
     c.font = '10px Jost, sans-serif';
     c.fillText('This proposal is valid for 30 days.', CW-PAD, y+14);
     c.textAlign = 'left';
+    c.globalAlpha = 1;
     y += 36;
 
     // Crop canvas to actual content height then download
