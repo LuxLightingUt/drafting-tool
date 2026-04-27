@@ -84,12 +84,6 @@ html, body {
   letter-spacing:0.02em;
 }
 #addrWrap input::placeholder { color:var(--text-dim); }
-#btnGo {
-  background:linear-gradient(135deg,var(--gold),var(--gold-lt));
-  color:#0a0a0a; border:none; border-radius:6px;
-  padding:6px 13px; font-weight:500; font-size:12px; letter-spacing:0.08em;
-  font-family:'Cinzel',sans-serif; cursor:pointer; white-space:nowrap; flex-shrink:0;
-}
 .hbtn {
   background:var(--surface2); border:1px solid var(--border); color:var(--text-dim);
   border-radius:7px; width:38px; height:38px; display:flex; align-items:center;
@@ -430,6 +424,43 @@ html, body {
 }
 #quoteOverlay.show { display:block; }
 
+/* ── PDF PREVIEW OVERLAY ── */
+#pdfOverlay {
+  display:none; position:fixed; inset:0; z-index:400;
+  background:#0a0a0a; flex-direction:column;
+}
+#pdfOverlay.open { display:flex; }
+#pdfToolbar {
+  flex-shrink:0; background:#111111; padding:12px 16px;
+  border-bottom:1px solid #2a2620;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+#pdfToolbar .pdf-title { font-family:'Cinzel',serif; font-size:12px; color:#f0e8d8; letter-spacing:0.12em; }
+.pdf-tbtn {
+  background:#f0e8d8; color:#1a1a1a; border:none; border-radius:6px;
+  padding:8px 16px; font-family:'Cinzel',serif; font-size:11px;
+  letter-spacing:0.08em; cursor:pointer; white-space:nowrap;
+}
+.pdf-tbtn-close {
+  background:none; border:1px solid #333; color:#888; border-radius:6px;
+  padding:8px 12px; font-family:'Jost',sans-serif; font-size:14px; cursor:pointer;
+}
+#pdfScrollArea {
+  flex:1; overflow-y:auto; padding:24px 16px 40px;
+  -webkit-overflow-scrolling:touch;
+}
+#pdfContent {
+  background:#0a0a0a; color:#f0e8d8;
+  border-radius:10px; max-width:680px; margin:0 auto;
+  padding:40px 36px; box-shadow:0 4px 40px rgba(0,0,0,0.6);
+  font-family:'Jost',sans-serif;
+}
+@media print {
+  #pdfToolbar { display:none !important; }
+  #pdfScrollArea { padding:0; overflow:visible; }
+  #pdfContent { box-shadow:none; border-radius:0; max-width:100%; padding:0; }
+  #pdfOverlay { position:static; background:#fff; }
+}
 ::-webkit-scrollbar { width:3px; height:3px; }
 ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
 </style>
@@ -447,8 +478,8 @@ html, body {
       </div>
     </div>
     <div id="addrWrap">
-      <input id="addrIn" type="text" placeholder="Client address..." autocomplete="off" autocorrect="off" spellcheck="false">
-      <button id="btnGo">GO</button>
+      <input id="clientName" type="text" placeholder="Client name..." autocomplete="off" autocorrect="off" spellcheck="false" style="width:110px;flex-shrink:0;border-right:1px solid var(--border2);padding-right:10px;margin-right:6px;">
+      <input id="addrIn" type="text" placeholder="Property address..." autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
     <label class="hbtn" style="cursor:pointer;" title="Upload screenshot">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -460,6 +491,15 @@ html, body {
     <div class="hbtn" id="btnQuote" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
     </div>
+  </div>
+
+  <!-- CLIENT INFO BAR -->
+  <div id="clientBar" style="display:none;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);padding:6px 14px;display:none;align-items:center;gap:8px;z-index:50;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span id="clientBarName" style="font-family:'Cinzel',serif;font-size:11px;color:var(--cream);letter-spacing:0.08em;"></span>
+    <span style="color:var(--border2);">·</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span id="clientBarAddr" style="font-size:11px;color:var(--text-dim);letter-spacing:0.02em;"></span>
   </div>
 
   <!-- MAP -->
@@ -553,8 +593,17 @@ html, body {
   </div>
   <div id="quoteBody">
 
-    <!-- Address -->
-    <div class="q-address" id="qAddress"></div>
+    <!-- Client info -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="qClientName" style="font-family:'Cinzel',serif;font-size:12px;color:var(--cream);letter-spacing:0.08em;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="qAddress" style="font-size:12px;color:var(--text-dim);"></span>
+      </div>
+    </div>
 
     <!-- Per-light price -->
     <div class="q-price-row">
@@ -616,6 +665,26 @@ html, body {
   </div>
 </div>
 
+<!-- PDF PREVIEW OVERLAY -->
+<div id="pdfOverlay">
+  <div id="pdfToolbar">
+    <div class="lux-brand">
+      <div class="lux-lux">LUX</div>
+      <div class="lux-sub">
+        <div class="lux-lighting">LIGHTING</div>
+        <div class="lux-line"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="pdf-tbtn" id="btnPrint">🖨 Print / Save PDF</button>
+      <button class="pdf-tbtn-close" id="btnClosePdf">✕</button>
+    </div>
+  </div>
+  <div id="pdfScrollArea">
+    <div id="pdfContent"></div>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div id="modal">
   <div class="mbox">
@@ -660,7 +729,7 @@ const FCFG = {
   tree:{ color:'#c9a84c', glow:'rgba(201,168,76,0.6)',  r:13, label:'Tree Light',  beam:'cone',   beamL:90,  beamA:55,  beamColor:'rgba(255,240,180,0.22)' },
   well:{ color:'#7ab4c8', glow:'rgba(122,180,200,0.6)', r:13, label:'Well Light',  beam:'radial', beamR:45,  beamColor:'rgba(255,240,180,0.18)' },
   spot:{ color:'#e8c97a', glow:'rgba(232,201,122,0.6)', r:13, label:'Spot Light',  beam:'cone',   beamL:120, beamA:36,  beamColor:'rgba(255,240,180,0.26)' },
-  wash:{ color:'#c87ab4', glow:'rgba(200,122,180,0.6)', r:13, label:'Wash Light',  beam:'cone',   beamL:75,  beamA:82,  beamColor:'rgba(255,240,180,0.20)' },
+  wash:{ color:'#c87ab4', glow:'rgba(200,122,180,0.6)', r:13, label:'Wash Light',  beam:'cone',   beamL:75,  beamA:110, beamColor:'rgba(255,240,180,0.20)' },
 };
 const WCFG = {
   main:  { color:'#c9a84c', w:3, dash:'none', label:'Main Run' },
@@ -703,63 +772,6 @@ function showMap(w,h) {
   applyT();
 }
 
-document.getElementById('btnGo').addEventListener('click', loadAddr);
-document.getElementById('addrIn').addEventListener('keydown', e=>{ if(e.key==='Enter') loadAddr(); });
-
-function loadAddr() {
-  const addr = document.getElementById('addrIn').value.trim();
-  if(!addr) return;
-  const btn = document.getElementById('btnGo');
-  btn.textContent='…';
-  fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr)}&format=json&limit=1`)
-    .then(r=>r.json()).then(d=>{
-      btn.textContent='GO';
-      if(!d||!d.length){ loadDemo(addr); return; }
-      const lat=parseFloat(d[0].lat), lon=parseFloat(d[0].lon);
-      const z=18, tx=l2t(lon,z), ty=a2t(lat,z);
-      const url=`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${tx}`;
-      const img=new Image(); img.crossOrigin='anonymous';
-      img.onload=()=>{ mapImg.src=img.src; mapImg.onload=()=>showMap(img.naturalWidth,img.naturalHeight); };
-      img.onerror=()=>loadDemo(addr);
-      img.src=url;
-    }).catch(()=>{ document.getElementById('btnGo').textContent='GO'; loadDemo(addr); });
-}
-function l2t(lon,z){ return Math.floor((lon+180)/360*Math.pow(2,z)); }
-function a2t(lat,z){ return Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*Math.pow(2,z)); }
-
-function loadDemo(addr) {
-  const W=800,H=600, oc=document.createElement('canvas');
-  oc.width=W; oc.height=H; const c=oc.getContext('2d');
-  const g=c.createLinearGradient(0,0,0,H); g.addColorStop(0,'#1a1208'); g.addColorStop(1,'#0a0a08');
-  c.fillStyle=g; c.fillRect(0,0,W,H);
-  c.strokeStyle='rgba(60,50,30,.3)'; c.lineWidth=.7;
-  for(let x=0;x<W;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke();}
-  for(let y=0;y<H;y+=40){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke();}
-  c.fillStyle='#1a1a12'; rrc(c,140,110,520,360,20); c.fill();
-  c.fillStyle='#222018'; c.fillRect(530,110,60,200);
-  c.fillStyle='#2a2820'; rrc(c,260,170,280,200,8); c.fill();
-  c.strokeStyle='#3a3828'; c.lineWidth=2; rrc(c,260,170,280,200,8); c.stroke();
-  c.fillStyle='#1e1c16'; c.beginPath(); c.moveTo(250,170);c.lineTo(400,100);c.lineTo(550,170);c.closePath(); c.fill();
-  c.fillStyle='#222018'; rrc(c,380,370,40,100,6); c.fill();
-  tree(c,180,200,26); tree(c,580,210,22); tree(c,170,370,20); tree(c,570,380,24);
-  for(let i=0;i<7;i++) shrub(c,270+i*46,162,12);
-  c.fillStyle='rgba(201,168,76,.5)'; c.font='bold 13px sans-serif'; c.textAlign='center';
-  c.fillText(addr||'Demo Property',W/2,H-18);
-  const src=oc.toDataURL();
-  mapImg.src=src;
-  mapImg.onload=()=>showMap(W,H);
-}
-function rrc(c,x,y,w,h,r){
-  c.beginPath(); c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.quadraticCurveTo(x+w,y,x+w,y+r);
-  c.lineTo(x+w,y+h-r); c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-  c.lineTo(x+r,y+h); c.quadraticCurveTo(x,y+h,x,y+h-r);
-  c.lineTo(x,y+r); c.quadraticCurveTo(x,y,x+r,y); c.closePath();
-}
-function tree(c,x,y,r){
-  c.fillStyle='#1a1a10'; c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill();
-  c.fillStyle='#252518'; c.beginPath(); c.arc(x-r*.15,y-r*.15,r*.65,0,Math.PI*2); c.fill();
-}
-function shrub(c,x,y,r){ c.fillStyle='#1a1a10'; c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill(); }
 
 // FILE UPLOAD ─────────────────────────────────────
 function handleFile(file) {
@@ -1474,44 +1486,264 @@ document.getElementById('btnNew').addEventListener('click',()=>{
 });
 
 // ── EXPORT ─────────────────────────────────────────
-document.getElementById('btnExp').addEventListener('click',()=>{
-  if(empty.style.display!=='none'){alert('Load a map first.');return;}
-  const ec=document.createElement('canvas'); ec.width=S.W; ec.height=S.H;
-  const cx=ec.getContext('2d');
-  if(mapImg.src){try{cx.drawImage(mapImg,0,0,S.W,S.H);}catch(e){}}
-  S.wires.forEach(w=>{
-    const cfg=WCFG[w.style];
-    cx.strokeStyle=cfg.color; cx.lineWidth=cfg.w*1.5;
-    cx.lineCap='round'; cx.lineJoin='round';
-    cx.shadowColor=cfg.color; cx.shadowBlur=8;
-    cx.setLineDash(cfg.dash!=='none'?cfg.dash.split(',').map(Number):[]);
-    cx.beginPath(); w.pts.forEach((p,i)=>i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y)); cx.stroke();
-  });
-  cx.shadowBlur=0; cx.setLineDash([]);
-  S.fixtures.forEach(f=>{
-    const cfg=FCFG[f.type];
-    cx.shadowColor=cfg.glow; cx.shadowBlur=14;
-    cx.fillStyle=cfg.color; cx.beginPath(); cx.arc(f.x,f.y,cfg.r,0,Math.PI*2); cx.fill();
-    cx.shadowBlur=0;
-  });
-  // legend
-  rrc(cx,12,12,198,164,10); cx.fillStyle='rgba(13,15,14,.85)'; cx.fill();
-  cx.strokeStyle='#2a2e2b'; cx.lineWidth=1; rrc(cx,12,12,198,164,10); cx.stroke();
-  cx.fillStyle='#c9a84c'; cx.font='bold 13px serif'; cx.fillText('Lux Lighting',22,34);
-  cx.fillStyle='#8a9189'; cx.font='11px monospace';
-  const addr=document.getElementById('addrIn').value; if(addr) cx.fillText(addr,22,50);
-  const co={path:'#7bc67e',tree:'#c8e86b',well:'#7bb3c6',spot:'#f0c464',wash:'#d08ef0'};
-  const lb={path:'Path',tree:'Tree',well:'Well',spot:'Spot',wash:'Wash'};
-  const cn={path:0,tree:0,well:0,spot:0,wash:0}; S.fixtures.forEach(f=>cn[f.type]++);
-  let ly=68;
-  ['path','tree','well','spot','wash'].forEach(t=>{
-    cx.fillStyle=co[t]; cx.beginPath(); cx.arc(24,ly-3,5,0,Math.PI*2); cx.fill();
-    cx.fillStyle='#e8ece9'; cx.font='11px sans-serif'; cx.fillText(`${lb[t]}: ${cn[t]}`,36,ly); ly+=17;
-  });
-  let ft=0; S.wires.forEach(w=>{for(let i=1;i<w.pts.length;i++) ft+=Math.hypot(w.pts[i].x-w.pts[i-1].x,w.pts[i].y-w.pts[i-1].y);});
-  cx.fillStyle='#f0c464'; cx.font='11px sans-serif'; cx.fillText(`Wire: ${Math.round(ft*S.ftPerPx)} ft`,22,ly+4);
-  const a=document.createElement('a'); a.download=`lumendraft-${Date.now()}.png`; a.href=ec.toDataURL(); a.click();
-});
+document.getElementById('btnExp').addEventListener('click', generatePDF);
+
+function generatePDF() {
+  if(!S.W) { alert('Load a map first.'); return; }
+  buildMapCanvas(mapDataUrl => openPrintWindow(mapDataUrl));
+}
+
+// ── BUILD MAP CANVAS ────────────────────────────────
+function buildMapCanvas(cb) {
+    const mw = 900, mh = Math.round(900 * (S.H / S.W));
+    const canvas = document.createElement('canvas');
+    canvas.width = mw; canvas.height = mh;
+    const ctx = canvas.getContext('2d');
+    const ratio = mw / S.W;
+
+    function drawEverything() {
+      // 1 — beams (drawn before icons so they sit underneath)
+      S.fixtures.forEach(f => {
+        const cfg = FCFG[f.type];
+        const x = f.x * ratio, y = f.y * ratio;
+        const ang = (f.angle ?? 270) * Math.PI / 180;
+
+        if (cfg.beam === 'radial') {
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, cfg.beamR * ratio);
+          grad.addColorStop(0,   'rgba(255,240,180,0.55)');
+          grad.addColorStop(0.45,'rgba(255,232,160,0.18)');
+          grad.addColorStop(1,   'rgba(255,240,180,0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, cfg.beamR * ratio, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          const half = (cfg.beamA / 2) * Math.PI / 180;
+          const L = cfg.beamL * ratio;
+          const x1 = x + Math.cos(ang - half) * L;
+          const y1 = y + Math.sin(ang - half) * L;
+          const x2 = x + Math.cos(ang + half) * L;
+          const y2 = y + Math.sin(ang + half) * L;
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, L);
+          grad.addColorStop(0,   'rgba(255,240,180,0.70)');
+          grad.addColorStop(0.5, 'rgba(255,232,160,0.22)');
+          grad.addColorStop(1,   'rgba(255,240,180,0)');
+          ctx.save();
+          ctx.filter = 'blur(3px)';
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          const laf = cfg.beamA > 180 ? 1 : 0;
+          ctx.moveTo(x, y);
+          ctx.lineTo(x1, y1);
+          ctx.arc(x, y, L, ang - half, ang + half);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+
+      // 2 — fixture icons (charcoal badge + colored symbol)
+      S.fixtures.forEach(f => {
+        const cfg = FCFG[f.type];
+        const x = f.x * ratio, y = f.y * ratio;
+        const r = cfg.r * ratio;
+        const ang = (f.angle ?? 270) * Math.PI / 180;
+        const col = cfg.color;
+
+        // Charcoal badge
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = '#2c2c2c';
+        ctx.fill();
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Icon
+        ctx.fillStyle = col;
+        ctx.strokeStyle = col;
+        ctx.lineWidth = Math.max(1.5, ratio * 1.5);
+        ctx.lineCap = 'round';
+
+        if (f.type === 'path') {
+          const stemH = r * 0.9;
+          ctx.fillRect(x - 1.5*ratio, y, 3*ratio, stemH * 0.9);
+          ctx.beginPath();
+          ctx.ellipse(x, y, r * 0.85, r * 0.5, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+        } else if (f.type === 'tree') {
+          [-r*0.45, 0, r*0.45].forEach((ox, i) => {
+            ctx.globalAlpha = i === 1 ? 1 : 0.6;
+            const yo = i === 1 ? 0 : r * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(x + ox, y + r * 0.5 + yo);
+            ctx.lineTo(x + ox, y - r * 0.4 + yo);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + ox - r * 0.18, y - r * 0.1 + yo);
+            ctx.lineTo(x + ox, y - r * 0.4 + yo);
+            ctx.lineTo(x + ox + r * 0.18, y - r * 0.1 + yo);
+            ctx.stroke();
+          });
+          ctx.globalAlpha = 1;
+
+        } else if (f.type === 'well') {
+          ctx.beginPath();
+          ctx.arc(x, y, r * 0.88, 0, Math.PI * 2);
+          ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(x, y, r * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+
+        } else if (f.type === 'spot') {
+          const perp = ang + Math.PI / 2;
+          const tipX = x + Math.cos(ang) * r * 0.7;
+          const tipY = y + Math.sin(ang) * r * 0.7;
+          const bx = x - Math.cos(ang) * r * 0.4;
+          const by = y - Math.sin(ang) * r * 0.4;
+          const hw = r * 0.55;
+          ctx.beginPath();
+          ctx.moveTo(tipX, tipY);
+          ctx.lineTo(bx + Math.cos(perp)*hw, by + Math.sin(perp)*hw);
+          ctx.lineTo(bx - Math.cos(perp)*hw, by - Math.sin(perp)*hw);
+          ctx.closePath();
+          ctx.fill();
+
+        } else if (f.type === 'wash') {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(ang - Math.PI/2);
+          const bw = r * 1.8, bh = r * 0.45;
+          ctx.beginPath();
+          ctx.roundRect(-bw/2, -bh/2, bw, bh, bh/2);
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+
+      cb(canvas.toDataURL('image/png'));
+    }
+
+    // Draw map image first if available
+    if (S.mapSrc) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, mw, mh);
+        drawEverything();
+      };
+      img.onerror = () => { ctx.fillStyle='#111'; ctx.fillRect(0,0,mw,mh); drawEverything(); };
+      img.src = S.mapSrc;
+    } else {
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, mw, mh);
+      drawEverything();
+    }
+}
+
+function openPrintWindow(mapDataUrl) {
+    const date    = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    const name    = document.getElementById('clientName').value.trim() || '';
+    const addr    = document.getElementById('addrIn').value.trim() || '';
+    const ppl     = parseFloat(document.getElementById('qPricePerLight').value) || 450;
+    const LABELS  = {path:'Path Lights',tree:'Tree Lights',well:'Well Lights',spot:'Spot Lights',wash:'Wash Lights'};
+    const COLORS  = {path:'#a8c878',tree:'#c9a84c',well:'#7ab4c8',spot:'#e8c97a',wash:'#c87ab4'};
+    const cn      = {path:0,tree:0,well:0,spot:0,wash:0};
+    S.fixtures.forEach(f=>{ if(cn[f.type]!==undefined) cn[f.type]++; });
+    const subtotal = Object.values(cn).reduce((a,b)=>a+b,0) * ppl;
+    let discount = 0;
+    if(document.getElementById('qToggleTrack').classList.contains('on')) {
+      const pct = parseFloat(document.getElementById('qDiscPct').value)||0;
+      const amt = parseFloat(document.getElementById('qDiscAmt').value)||0;
+      discount = Math.min(Math.round(subtotal*pct/100)+amt, subtotal);
+    }
+    const total = subtotal - discount;
+
+    const fixtureChips = Object.entries(cn).filter(([,v])=>v>0).map(([k,v])=>
+      `<div style="display:flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid #2a2620;border-radius:20px;font-size:12px;color:#a09080;">
+        <div style="width:8px;height:8px;border-radius:50%;background:${COLORS[k]};flex-shrink:0;"></div>
+        <span>${v} ${LABELS[k]}</span>
+      </div>`).join('');
+
+    const tableRows = Object.entries(cn).filter(([,v])=>v>0).map(([k,v])=>
+      `<tr>
+        <td style="padding:9px 14px;font-size:13px;color:#f0e8d8;border-bottom:1px solid #1e1e1e;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:9px;height:9px;border-radius:50%;background:${COLORS[k]};flex-shrink:0;"></div>
+            ${LABELS[k]}
+          </div>
+        </td>
+        <td style="padding:9px 14px;font-size:13px;text-align:center;color:#f0e8d8;border-bottom:1px solid #1e1e1e;">${v}</td>
+        <td style="padding:9px 14px;font-size:13px;text-align:right;color:#f0e8d8;border-bottom:1px solid #1e1e1e;">$${(v*ppl).toLocaleString()}</td>
+      </tr>`).join('');
+
+    const discountRowHTML = discount>0
+      ? `<tr><td colspan="2" style="padding:7px 14px;font-size:12px;color:#5a5048;border-bottom:1px solid #1e1e1e;">Discount</td><td style="padding:7px 14px;text-align:right;font-size:12px;color:#5a5048;border-bottom:1px solid #1e1e1e;">−$${discount.toLocaleString()}</td></tr>` : '';
+
+    const subtotalRow = `<tr style="background:#141414;">
+      <td colspan="2" style="padding:9px 14px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.1em;color:#5a5048;">SUBTOTAL</td>
+      <td style="padding:9px 14px;text-align:right;font-family:'Cormorant Garamond',serif;font-size:16px;color:#a09080;">$${subtotal.toLocaleString()}</td>
+    </tr>`;
+
+    const mapHTML = mapDataUrl
+      ? `<div style="width:100%;border-radius:8px;overflow:hidden;border:1px solid #2a2620;margin-bottom:22px;background:#111;">
+           <img src="${mapDataUrl}" style="width:100%;height:auto;display:block;" alt="Property Plan">
+         </div>` : '';
+
+    const html = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:16px;border-bottom:1px solid #2a2620;margin-bottom:22px;">
+        <div style="display:flex;flex-direction:column;align-items:center;line-height:1;gap:1px;padding:6px 2px;">
+          <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:600;color:#f0e8d8;letter-spacing:0.12em;line-height:1;text-shadow:0 0 20px rgba(201,168,76,0.3);">LUX</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+            <div style="font-family:'Cinzel',serif;font-size:7px;font-weight:400;color:#a09080;letter-spacing:0.35em;">LIGHTING</div>
+            <div style="width:44px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);"></div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Cinzel',serif;font-size:10px;color:#7a6e60;letter-spacing:0.18em;margin-bottom:4px;">LANDSCAPE LIGHTING PROPOSAL</div>
+          <div style="font-family:'Jost',sans-serif;font-size:11px;color:#5a5048;">${date}</div>
+        </div>
+      </div>
+
+      ${(name || addr) ? `
+      <div style="margin-bottom:20px;">
+        ${name ? `<div style="font-family:'Cinzel',serif;font-size:14px;color:#f0e8d8;letter-spacing:0.08em;margin-bottom:4px;">${name}</div>` : ''}
+        ${addr ? `<div style="font-family:'Jost',sans-serif;font-size:12px;color:#a09080;">${addr}</div>` : ''}
+      </div>` : ''}
+
+      ${mapHTML}
+
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.16em;color:#5a5048;text-transform:uppercase;margin-bottom:8px;">Fixture Plan</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;">${fixtureChips}</div>
+
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.16em;color:#5a5048;text-transform:uppercase;margin-bottom:8px;">Investment Summary</div>
+      <div style="border:1px solid #2a2620;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#141414;border-bottom:1px solid #2a2620;">
+              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#5a5048;font-weight:400;padding:9px 14px;text-align:left;">Fixture</th>
+              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#5a5048;font-weight:400;padding:9px 14px;text-align:center;">Qty</th>
+              <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#5a5048;font-weight:400;padding:9px 14px;text-align:right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}${discountRowHTML}${subtotalRow}</tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px;background:#141414;border:1px solid #2a2620;border-radius:8px;margin-bottom:22px;">
+        <span style="font-family:'Cinzel',serif;font-size:11px;color:#7a6e60;letter-spacing:0.16em;">TOTAL INVESTMENT</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#f0e8d8;">$${total.toLocaleString()}</span>
+      </div>
+
+      <div style="padding-top:14px;border-top:1px solid #2a2620;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-family:'Cinzel',serif;font-size:10px;color:#3a3430;letter-spacing:0.14em;">LUX LIGHTING</span>
+        <span style="font-size:10px;color:#3a3430;">This proposal is valid for 30 days.</span>
+      </div>`;
+
+    document.getElementById('pdfContent').innerHTML = html;
+    document.getElementById('pdfScrollArea').scrollTop = 0;
+    document.getElementById('pdfOverlay').classList.add('open');
+}
 
 // ── MODAL ──────────────────────────────────────────
 let mcb=null;
@@ -1535,7 +1767,276 @@ document.addEventListener('keydown',e=>{
   if(e.key==='e') setMode('erase');
 });
 
-// ── QUOTE SCREEN ───────────────────────────────────
+// ── PDF PRINT / CLOSE ──────────────────────────────
+document.getElementById('btnPrint').addEventListener('click', downloadProposal);
+document.getElementById('btnClosePdf').addEventListener('click', () => {
+  document.getElementById('pdfOverlay').classList.remove('open');
+});
+
+function downloadProposal() {
+  const btn = document.getElementById('btnPrint');
+  btn.textContent = 'Building…';
+  btn.disabled = true;
+
+  // Gather data
+  const addr  = document.getElementById('addrIn').value.trim() || '';
+  const name  = document.getElementById('clientName').value.trim() || '';
+  const ppl   = parseFloat(document.getElementById('qPricePerLight').value) || 450;
+  const cn    = {path:0,tree:0,well:0,spot:0,wash:0};
+  S.fixtures.forEach(f=>{ if(cn[f.type]!==undefined) cn[f.type]++; });
+  const total_fixtures = Object.values(cn).reduce((a,b)=>a+b,0);
+  const subtotal = total_fixtures * ppl;
+  let discount = 0;
+  if(document.getElementById('qToggleTrack').classList.contains('on')) {
+    const pct = parseFloat(document.getElementById('qDiscPct').value)||0;
+    const amt = parseFloat(document.getElementById('qDiscAmt').value)||0;
+    discount = Math.min(Math.round(subtotal*pct/100)+amt, subtotal);
+  }
+  const total = subtotal - discount;
+  const date  = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  const LABELS = {path:'Path Lights',tree:'Tree Lights',well:'Well Lights',spot:'Spot Lights',wash:'Wash Lights'};
+  const COLORS = {path:'#a8c878',tree:'#c9a84c',well:'#7ab4c8',spot:'#e8c97a',wash:'#c87ab4'};
+  const types  = Object.entries(cn).filter(([,v])=>v>0);
+
+  // Canvas dimensions — letter-ish proportions at 2x for sharpness
+  const CW = 900;
+  const PAD = 52;
+  const mapH = S.W ? Math.round(CW * (S.H/S.W)) : 0;
+  const rowH = 44;
+  const footerH = 80;
+  const contentH = 200 + mapH + (types.length * rowH) + footerH + (discount>0?44:0);
+  const CH = contentH;
+
+  const cv  = document.createElement('canvas');
+  cv.width  = CW; cv.height = CH;
+  const c   = cv.getContext('2d');
+
+  function drawProposal(mapDataUrl) {
+    // Background
+    c.fillStyle = '#0a0a0a';
+    c.fillRect(0,0,CW,CH);
+
+    let y = PAD;
+
+    // ── LOGO — matches app header exactly ──
+    c.font = `600 42px 'Cinzel', serif`;
+    c.fillStyle = '#f0e8d8';
+    c.fillText('LUX', PAD, y + 40);
+
+    c.font = `400 10px 'Cinzel', serif`;
+    c.fillStyle = '#7a6e60';
+    c.fillText('LIGHTING', PAD + 2, y + 57);
+
+    // Gold gradient line under LIGHTING
+    const gline = c.createLinearGradient(PAD, 0, PAD + 68, 0);
+    gline.addColorStop(0, '#c9a84c');
+    gline.addColorStop(1, 'rgba(201,168,76,0)');
+    c.fillStyle = gline;
+    c.fillRect(PAD, y + 62, 68, 1.5);
+
+    // Proposal label + date top right
+    c.font = `400 11px 'Cinzel', serif`;
+    c.fillStyle = '#7a6e60';
+    c.textAlign = 'right';
+    c.fillText('LANDSCAPE LIGHTING PROPOSAL', CW - PAD, y + 28);
+    c.font = `300 12px 'Jost', sans-serif`;
+    c.fillStyle = '#5a5048';
+    c.fillText(date, CW - PAD, y + 46);
+    c.textAlign = 'left';
+
+    // Divider
+    y += 82;
+    c.fillStyle = '#2a2620';
+    c.fillRect(PAD, y, CW - PAD*2, 1);
+    y += 16;
+
+    // Client name + address
+    if(name || addr) {
+      if(name) {
+        c.font = `600 16px 'Cinzel', serif`;
+        c.fillStyle = '#f0e8d8';
+        c.fillText(name, PAD, y + 18);
+        y += 26;
+      }
+      if(addr) {
+        c.font = `400 13px 'Jost', sans-serif`;
+        c.fillStyle = '#a09080';
+        c.fillText(addr, PAD, y + 16);
+        y += 28;
+      }
+      y += 8;
+    }
+
+    // Map image
+    if(mapDataUrl) {
+      const mw = CW - PAD*2;
+      const mh = mapH;
+      c.save();
+      c.beginPath();
+      c.roundRect(PAD, y, mw, mh, 8);
+      c.clip();
+      const img = new Image();
+      img.onload = () => {
+        c.drawImage(img, PAD, y, mw, mh);
+        c.restore();
+        drawAfterMap(y + mh + 20);
+      };
+      img.src = mapDataUrl;
+    } else {
+      drawAfterMap(y);
+    }
+  } // end drawProposal
+
+  function drawAfterMap(y) {
+    // Section: Fixture Plan
+    c.font = `400 10px 'Cinzel', serif`;
+    c.fillStyle = '#5a5048';
+    c.fillText('FIXTURE PLAN', PAD, y + 12);
+    y += 24;
+
+    // Fixture chips in a row
+    let cx = PAD;
+    Object.entries(cn).filter(([,v])=>v>0).forEach(([k,v])=>{
+      const label = `${v} ${LABELS[k]}`;
+      c.font = '13px Jost, sans-serif';
+      const tw = c.measureText(label).width;
+      const chipW = tw + 28 + 14;
+      // chip bg
+      c.strokeStyle = '#2a2620'; c.lineWidth = 1;
+      c.beginPath(); c.roundRect(cx, y, chipW, 26, 13); c.stroke();
+      // dot
+      c.fillStyle = COLORS[k];
+      c.beginPath(); c.arc(cx + 16, y + 13, 5, 0, Math.PI*2); c.fill();
+      // label
+      c.fillStyle = '#a09080';
+      c.fillText(label, cx + 28, y + 18);
+      cx += chipW + 8;
+    });
+    y += 44;
+
+    // Section: Investment Summary
+    c.font = `400 10px 'Cinzel', serif`;
+    c.fillStyle = '#5a5048';
+    c.fillText('INVESTMENT SUMMARY', PAD, y + 12);
+    y += 22;
+
+    // Table header
+    c.fillStyle = '#141414';
+    c.fillRect(PAD, y, CW - PAD*2, 34);
+    c.font = `400 9px 'Cinzel', serif`;
+    c.fillStyle = '#5a5048';
+    c.fillText('FIXTURE',   PAD + 14, y + 21);
+    c.textAlign = 'center';
+    c.fillText('QTY', CW/2, y + 21);
+    c.textAlign = 'right';
+    c.fillText('AMOUNT', CW - PAD - 14, y + 21);
+    c.textAlign = 'left';
+    y += 34;
+
+    // Table rows
+    Object.entries(cn).filter(([,v])=>v>0).forEach(([k,v], i) => {
+      c.fillStyle = i%2===0 ? '#0f0f0f' : '#0a0a0a';
+      c.fillRect(PAD, y, CW - PAD*2, rowH);
+      // dot + label
+      c.fillStyle = COLORS[k];
+      c.beginPath(); c.arc(PAD+20, y+rowH/2, 5, 0, Math.PI*2); c.fill();
+      c.font = '14px Jost, sans-serif';
+      c.fillStyle = '#f0e8d8';
+      c.fillText(LABELS[k], PAD+34, y+rowH/2+5);
+      // qty
+      c.textAlign = 'center';
+      c.fillText(v, CW/2, y+rowH/2+5);
+      // amount
+      c.textAlign = 'right';
+      c.fillText('$'+(v*ppl).toLocaleString(), CW-PAD-14, y+rowH/2+5);
+      c.textAlign = 'left';
+      y += rowH;
+    });
+
+    // Discount row
+    if(discount > 0) {
+      c.fillStyle = '#0a0a0a';
+      c.fillRect(PAD, y, CW - PAD*2, rowH);
+      c.font = '13px Jost, sans-serif';
+      c.fillStyle = '#888';
+      c.fillText('Discount', PAD+14, y+rowH/2+5);
+      c.textAlign = 'right';
+      c.fillText('−$'+discount.toLocaleString(), CW-PAD-14, y+rowH/2+5);
+      c.textAlign = 'left';
+      y += rowH;
+    }
+
+    // Subtotal row
+    c.fillStyle = '#141414';
+    c.fillRect(PAD, y, CW - PAD*2, rowH);
+    c.font = `400 10px 'Cinzel', serif`;
+    c.fillStyle = '#5a5048';
+    c.fillText('SUBTOTAL', PAD+14, y+rowH/2+5);
+    c.font = `400 17px 'Cormorant Garamond', serif`;
+    c.fillStyle = '#a09080';
+    c.textAlign = 'right';
+    c.fillText('$'+subtotal.toLocaleString(), CW-PAD-14, y+rowH/2+7);
+    c.textAlign = 'left';
+    y += rowH + 16;
+
+    // Total box
+    c.fillStyle = '#141414';
+    c.strokeStyle = '#2a2620';
+    c.lineWidth = 1;
+    c.beginPath(); c.roundRect(PAD, y, CW-PAD*2, 64, 8); c.fill(); c.stroke();
+    c.font = `400 11px 'Cinzel', serif`;
+    c.fillStyle = '#7a6e60';
+    c.fillText('TOTAL INVESTMENT', PAD+18, y+26);
+    c.font = `600 42px 'Cormorant Garamond', serif`;
+    c.fillStyle = '#f0e8d8';
+    c.textAlign = 'right';
+    c.fillText('$'+total.toLocaleString(), CW-PAD-18, y+52);
+    c.textAlign = 'left';
+    y += 80;
+
+    // Footer divider
+    c.fillStyle = '#2a2620';
+    c.fillRect(PAD, y, CW-PAD*2, 1);
+    y += 14;
+    c.font = `400 10px 'Cinzel', serif`;
+    c.fillStyle = '#3a3430';
+    c.fillText('LUX LIGHTING', PAD, y+14);
+    c.textAlign = 'right';
+    c.font = '10px Jost, sans-serif';
+    c.fillText('This proposal is valid for 30 days.', CW-PAD, y+14);
+    c.textAlign = 'left';
+
+    // Trigger download
+    const dataUrl = cv.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `Lux-Lighting-Proposal-${Date.now()}.png`;
+    a.click();
+
+    btn.textContent = '🖨 Print / Save PDF';
+    btn.disabled = false;
+  }
+
+  // Build the map composite first, then draw proposal on top
+  buildMapCanvas(mapDataUrl => drawProposal(mapDataUrl));
+}
+
+// ── CLIENT INFO BAR ────────────────────────────────
+function updateClientBar() {
+  const name = document.getElementById('clientName').value.trim();
+  const addr = document.getElementById('addrIn').value.trim();
+  const bar  = document.getElementById('clientBar');
+  if(name || addr) {
+    bar.style.display = 'flex';
+    document.getElementById('clientBarName').textContent = name || '—';
+    document.getElementById('clientBarAddr').textContent = addr || '—';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+document.getElementById('clientName').addEventListener('input', updateClientBar);
+document.getElementById('addrIn').addEventListener('input', updateClientBar);
 const LIGHT_TYPES = [
   { key:'path', label:'Path Lights',  color:'var(--cp)' },
   { key:'tree', label:'Tree Lights',  color:'var(--ct)' },
@@ -1547,28 +2048,26 @@ const LIGHT_TYPES = [
 // Quote state — counts can be edited independently of map
 const Q = { counts:{path:0,tree:0,well:0,spot:0,wash:0}, discountOn:false };
 
+// ── QUOTE SCREEN ───────────────────────────────────
 document.getElementById('btnQuote').addEventListener('click', openQuote);
 document.getElementById('btnCloseQuote').addEventListener('click', closeQuote);
 document.getElementById('quoteOverlay').addEventListener('click', closeQuote);
 
 function openQuote() {
-  // Sync counts from current fixtures
   Q.counts = {path:0,tree:0,well:0,spot:0,wash:0};
   S.fixtures.forEach(f=>{ if(Q.counts[f.type]!==undefined) Q.counts[f.type]++; });
 
-  // Address
+  const name = document.getElementById('clientName').value.trim();
   const addr = document.getElementById('addrIn').value.trim();
-  document.getElementById('qAddress').textContent = addr || '';
+  document.getElementById('qClientName').textContent = name || 'Client';
+  document.getElementById('qAddress').textContent    = addr || 'No address entered';
 
-  // Render light rows
   renderQLightRows();
 
-  // Wire note
   const ft = parseInt(document.getElementById('wft').textContent)||0;
   document.getElementById('qWireNote').textContent = ft>0 ? `Estimated wire run: ${ft} ft` : '';
 
   calcQuote();
-
   document.getElementById('quotePanel').classList.add('open');
   document.getElementById('quoteOverlay').classList.add('show');
 }
