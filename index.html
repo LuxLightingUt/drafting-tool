@@ -1897,16 +1897,16 @@ function downloadProposal() {
       y += 8;
     }
 
-    // Map image
+    // Map image — draw at natural aspect ratio
     if(mapDataUrl) {
-      const mw = CW - PAD*2;
-      const mh = mapH;
-      c.save();
-      c.beginPath();
-      c.roundRect(PAD, y, mw, mh, 8);
-      c.clip();
       const img = new Image();
       img.onload = () => {
+        const mw = CW - PAD*2;
+        const mh = Math.round(mw * (img.naturalHeight / img.naturalWidth));
+        c.save();
+        c.beginPath();
+        c.roundRect(PAD, y, mw, mh, 8);
+        c.clip();
         c.drawImage(img, PAD, y, mw, mh);
         c.restore();
         drawAfterMap(y + mh + 20);
