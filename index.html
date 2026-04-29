@@ -2228,6 +2228,9 @@ function collectProject() {
     clientName: document.getElementById('clientName').value,
     address:    document.getElementById('addrIn').value,
     pricePerLight: document.getElementById('qPricePerLight').value,
+    discountOn:  document.getElementById('qToggleTrack').classList.contains('on'),
+    discountPct: document.getElementById('qDiscPct').value,
+    discountAmt: document.getElementById('qDiscAmt').value,
     mapSrc: S.mapSrc || null,
     worldW: S.W, worldH: S.H,
     fixtures: S.fixtures.map(f=>({ id:f.id, x:f.x, y:f.y, type:f.type, angle:f.angle||270 })),
@@ -2249,6 +2252,20 @@ function restoreProject(data) {
   document.getElementById('clientName').value = data.clientName || '';
   document.getElementById('addrIn').value     = data.address    || '';
   if(data.pricePerLight) document.getElementById('qPricePerLight').value = data.pricePerLight;
+
+  // Restore discount
+  if(data.discountOn) {
+    document.getElementById('qToggleTrack').classList.add('on');
+    document.getElementById('qDiscountInputs').classList.add('show');
+    Q.discountOn = true;
+  } else {
+    document.getElementById('qToggleTrack').classList.remove('on');
+    document.getElementById('qDiscountInputs').classList.remove('show');
+    Q.discountOn = false;
+  }
+  document.getElementById('qDiscPct').value = data.discountPct || '';
+  document.getElementById('qDiscAmt').value = data.discountAmt || '';
+
   updateClientBar();
 
   // Restore map then fixtures/wires
