@@ -487,6 +487,15 @@ html, body {
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
       <input type="file" id="fi1" accept="image/*" style="display:none">
     </label>
+    <!-- Save project -->
+    <div class="hbtn" id="btnSave" title="Save project">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    </div>
+    <!-- Load project -->
+    <label class="hbtn" title="Load project" style="cursor:pointer;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><polyline points="9 14 12 11 15 14"/></svg>
+      <input type="file" id="loadInput" accept=".luxdraft,.json" style="display:none">
+    </label>
     <div class="hbtn" id="btnExp">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     </div>
@@ -496,12 +505,12 @@ html, body {
   </div>
 
   <!-- CLIENT INFO BAR -->
-  <div id="clientBar" style="display:none;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);padding:6px 14px;display:none;align-items:center;gap:8px;z-index:50;">
+  <div id="clientBar" style="display:none;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);padding:6px 14px;align-items:center;gap:8px;z-index:50;">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <span id="clientBarName" style="font-family:'Cinzel',serif;font-size:11px;color:var(--cream);letter-spacing:0.08em;"></span>
     <span style="color:var(--border2);">·</span>
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-    <span id="clientBarAddr" style="font-size:11px;color:var(--text-dim);letter-spacing:0.02em;"></span>
+    <span id="clientBarAddr" style="font-size:11px;color:var(--text-dim);letter-spacing:0.02em;flex:1;"></span>
   </div>
 
   <!-- MAP -->
@@ -765,7 +774,7 @@ function clamp() {
 // ── MAP LOAD ───────────────────────────────────────
 function showMap(w,h) {
   S.W=w; S.H=h;
-  S.mapSrc = mapImg.src; // store for quote canvas
+  S.mapSrc = mapImg.src;
   world.style.width=w+'px'; world.style.height=h+'px';
   wireSvg.setAttribute('width',w); wireSvg.setAttribute('height',h);
   wireSvg.setAttribute('viewBox',`0 0 ${w} ${h}`);
@@ -1504,6 +1513,9 @@ document.getElementById('btnNew').addEventListener('click',()=>{
     S.fixtures.forEach(f=>removeF(f)); S.wires.forEach(w=>w.el?.remove());
     cancelWire(); S.fixtures=[]; S.wires=[]; S.history=[]; S.mapSrc=null;
     mapImg.src=''; empty.style.display='flex'; updStats();
+    document.getElementById('clientName').value='';
+    document.getElementById('addrIn').value='';
+    updateClientBar();
   });
 });
 
@@ -2206,7 +2218,103 @@ document.getElementById('qDiscountToggle').addEventListener('click', ()=>{
     calcQuote();
   });
 });
-// ── INIT ───────────────────────────────────────────
+// ── SAVE / LOAD ────────────────────────────────────
+
+// Collect all project data into a plain object
+function collectProject() {
+  return {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    clientName: document.getElementById('clientName').value,
+    address:    document.getElementById('addrIn').value,
+    pricePerLight: document.getElementById('qPricePerLight').value,
+    mapSrc: S.mapSrc || null,
+    worldW: S.W, worldH: S.H,
+    fixtures: S.fixtures.map(f=>({ id:f.id, x:f.x, y:f.y, type:f.type, angle:f.angle||270 })),
+    wires:    S.wires.map(w=>({ id:w.id, pts:w.pts, style:w.style })),
+  };
+}
+
+// Restore project from a plain object
+function restoreProject(data) {
+  if(!data || data.version !== 1) return false;
+
+  // Clear current state
+  S.fixtures.forEach(f=>removeF(f));
+  S.wires.forEach(w=>w.el?.remove());
+  cancelWire();
+  S.fixtures=[]; S.wires=[]; S.history=[];
+
+  // Restore client info
+  document.getElementById('clientName').value = data.clientName || '';
+  document.getElementById('addrIn').value     = data.address    || '';
+  if(data.pricePerLight) document.getElementById('qPricePerLight').value = data.pricePerLight;
+  updateClientBar();
+
+  // Restore map then fixtures/wires
+  if(data.mapSrc && data.worldW && data.worldH) {
+    S.mapSrc = data.mapSrc;
+    mapImg.src = data.mapSrc;
+    mapImg.onload = () => {
+      showMap(data.worldW, data.worldH);
+      restoreFixturesAndWires(data);
+    };
+  } else {
+    restoreFixturesAndWires(data);
+  }
+  return true;
+}
+
+function restoreFixturesAndWires(data) {
+  const maxId = Math.max(0,
+    ...data.fixtures.map(f=>f.id),
+    ...(data.wires||[]).map(w=>w.id)
+  );
+  nid = maxId + 1;
+  data.fixtures.forEach(f => {
+    S.fixtures.push({...f});
+    placeF(S.fixtures[S.fixtures.length-1]);
+  });
+  (data.wires||[]).forEach(w => {
+    const wire = { id:w.id, pts:w.pts, style:w.style };
+    const el = mkWireEl(wire);
+    wireSvg.appendChild(el);
+    wire.el = el;
+    S.wires.push(wire);
+  });
+  updStats();
+}
+
+// ── SAVE PROJECT FILE ──
+document.getElementById('btnSave').addEventListener('click', () => {
+  const data = collectProject();
+  const name = (data.clientName || data.address || 'project').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `lux_${name}_${new Date().toISOString().slice(0,10)}.luxdraft`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ── LOAD PROJECT FILE ──
+document.getElementById('loadInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if(!restoreProject(data)) {
+        alert('This doesn\'t appear to be a valid Lux Lighting project file.');
+      }
+    } catch(err) {
+      alert('Could not read this file. Make sure it\'s a .luxdraft project file.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
 updBadge(); updStats();</script>
 </body>
 </html>
