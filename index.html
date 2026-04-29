@@ -1748,7 +1748,7 @@ function openPrintWindow(mapDataUrl) {
               <th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.14em;color:#f0e8d8;font-weight:400;padding:9px 14px;text-align:right;">Amount</th>
             </tr>
           </thead>
-          <tbody>${tableRows}${discountRowHTML}${subtotalRow}</tbody>
+          <tbody>${tableRows}${subtotalRow}${discountRowHTML}</tbody>
         </table>
       </div>
 
@@ -1983,7 +1983,19 @@ function downloadProposal() {
       y += rowH;
     });
 
-    // Discount row
+    // Subtotal row
+    c.fillStyle = '#141414';
+    c.fillRect(PAD, y, CW - PAD*2, rowH);
+    c.font = `400 10px 'Cinzel', serif`;
+    c.fillStyle = '#f0e8d8';
+    c.fillText('SUBTOTAL', PAD+14, y+rowH/2+5);
+    c.font = `400 17px 'Cormorant Garamond', serif`;
+    c.textAlign = 'right';
+    c.fillText('$'+subtotal.toLocaleString(), CW-PAD-14, y+rowH/2+7);
+    c.textAlign = 'left';
+    y += rowH;
+
+    // Discount row (below subtotal)
     if(discount > 0) {
       c.fillStyle = '#0a0a0a';
       c.fillRect(PAD, y, CW - PAD*2, rowH);
@@ -1996,17 +2008,7 @@ function downloadProposal() {
       y += rowH;
     }
 
-    // Subtotal row
-    c.fillStyle = '#141414';
-    c.fillRect(PAD, y, CW - PAD*2, rowH);
-    c.font = `400 10px 'Cinzel', serif`;
-    c.fillStyle = '#f0e8d8';
-    c.fillText('SUBTOTAL', PAD+14, y+rowH/2+5);
-    c.font = `400 17px 'Cormorant Garamond', serif`;
-    c.textAlign = 'right';
-    c.fillText('$'+subtotal.toLocaleString(), CW-PAD-14, y+rowH/2+7);
-    c.textAlign = 'left';
-    y += rowH + 16;
+    y += 16;
 
     // Total box
     c.fillStyle = '#141414';
